@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>es6-class</title>
+	<style type="text/css">
+		#drag1 {
+			width: 100px;
+			height: 100px;
+			background: red;
+			position: absolute;
+		}
+		#drag2 {
+			width: 100px;
+			height: 100px;
+			background: yellow;
+			position: absolute;
+		}
+	</style>
+</head>
+<body>
+<div id="drag1"></div>
+<div id="drag2"></div>
+<script type="text/javascript">
+	// common type
+	class Person {
+		constructor (name) {
+			this.name = name;
+		}
+
+		showName () {
+			console.log(this.name);
+		}
+
+		static say () {
+			console.log('hello world');
+		}
+	}
+
+
+	// expression type
+	let PersonClass = class Person {
+		constructor (name) {
+			this.name = name;
+		}
+
+		showName () {
+			console.log(this.name);
+		}
+
+		static say () {
+			console.log('hello world');
+		}
+	}
+
+	// 自执行
+	let otherPerson = new class {
+		constructor (name) {
+			this.name = name;
+		}
+
+		showName () {
+			console.log(this.name);
+		}
+
+		static say () {
+			console.log('hello world');
+		}
+	}('liusihan');
+
+	let person = new PersonClass('wuyongjun');
+	person.showName();
+	PersonClass.say();
+
+	otherPerson.showName();
+
+	class Drag {
+		constructor (id) {
+			this.elem = document.getElementById(id);
+			this.disX = 0;
+			this.disY = 0;
+		}
+
+		init () {
+			this.elem.onmousedown = ev => {
+				this.down(ev);
+				document.onmousemove = ev => {
+					this.move(ev);
+				}
+				document.onmouseup = ev => {
+					this.up(ev);
+				}
+				return false;
+			}
+		}
+
+		down (ev) {
+			this.disX = ev.pageX - this.elem.offsetLeft;
+			this.disY = ev.pageY - this.elem.offsetTop;
+		}
+
+		move (ev) {
+			let left = ev.pageX - this.disX;
+			let top = ev.pageY - this.disY;
+			this.elem.style.left = `${left}px`;
+			this.elem.style.top = `${top}px`;
+		}
+
+		up (ev) {
+			document.onmousemove = null;
+			document.onmouseup = null;
+		}
+	}
+
+	class RangeDrag extends Drag {
+		constructor (id) {
+			super(id);
+		}
+
+		move (ev) {
+			let left = ev.pageX - this.disX;
+			let top = ev.pageY - this.disY;
+			if (left < 0) {
+				left = 0
+			} else if (left > window.innerWidth - this.elem.offsetWidth) {
+				left = window.innerWidth - this.elem.offsetWidth;
+			}
+			if (top < 0) {
+				top = 0
+			} else if (top > window.innerHeight - this.elem.offsetHeight) {
+				top = window.innerHeight - this.elem.offsetHeight;
+			}
+			this.elem.style.left = `${left}px`;
+			this.elem.style.top = `${top}px`;
+		}
+	}
+
+	let drag1 = new Drag('drag1');
+	drag1.init();
+	let rangeDrag = new RangeDrag('drag2');
+	rangeDrag.init();
+
+</script>
+</body>
+</html>
+
+
+
+
+

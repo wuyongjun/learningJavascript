@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>define iterator for obj</title>
+</head>
+<body>
+<script type="text/javascript">
+	// 结合for of 和自定义迭代器可以组成强大的对象操作工具
+	let obj = {
+		a: 1,
+		b: 2
+	};
+
+	Object.defineProperty(obj, Symbol.iterator, {
+		writable: false,
+		enumerable: false,
+		value: function () { // return a iterator obj
+			let obj = this;
+			let index = 0;
+			let keys = Object.keys(obj);
+			return {
+				next: function () {
+					return {
+						value: obj[keys[index++]],
+						done: index > keys.length
+					}
+				}
+			}
+		}
+	});
+
+	let it = obj[Symbol.iterator]();
+	let result1 = it.next();
+	console.log(result1);
+
+	for (let val of obj) {
+		console.log(val);
+	}
+
+	let arr = [1, 2];
+	console.log(Object.getOwnPropertyDescriptors(obj));
+
+	let random = {};
+	Object.defineProperty(random, Symbol.iterator, {
+		writable: false,
+		enumerable: false,
+		configurable: true,
+		value: function () {
+			return {
+				next: function () {
+					return {
+						value: Math.random()
+					}
+				}
+			}
+		}
+	});
+
+	// 通过自定义一个无限循环的迭代器对象产生随机数
+	let randomPool = [];
+	for (let val of random) {
+		randomPool.push(val);
+
+		if (randomPool.length >= 100) break;
+	}
+	console.log(randomPool)
+
+	console.log(Object.prototype.toString.call(randomPool));
+
+</script>
+</body>
+</html>

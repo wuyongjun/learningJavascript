@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>设计模式简单示例</title>
+</head>
+<body>
+<div>
+	<button id="print-log">打印日志</button>
+</div>
+<div>
+	<input id="info" type="text" name="info"><button id="regist">注册</button>
+</div>
+<div id="div1"></div><br>
+<div>
+	<div><span id="store">*</span></div>
+	<textarea id="memento" rows="10"></textarea>
+</div><br>
+<div>
+	<ul id="list"></ul>
+</div>
+<script type="text/javascript">
+	/*
+		单例模式：只有一个实例，可以自创建实例，适用场景如打印日志
+	*/
+	function Bar () {
+		if (!Bar._instance) {
+			Bar._instance = {
+				name: 'hello'
+			};
+		}
+		return Bar._instance;
+	}
+
+	let bar1 = new Bar();
+	let bar2 = new Bar();
+	console.log( bar1 === bar2 );
+
+	function Log () {
+		if (!Log._instance) {
+			Log._instance = {
+				logs: [],
+
+				add (log) {
+					this.logs.push(log);
+				},
+
+				print () {
+					let timer = setInterval(() => {
+						let log = this.logs.shift();
+						log ? console.log(log) : clearInterval(timer);
+					}, 500);
+				}
+			};
+		}
+		return Log._instance;
+	}
+
+	let logs = ['the first log', 'the second log', 'the third log'];
+	for (let i = 0; i < logs.length; i++) {
+		let log = new Log();
+		log.add(logs[i]);
+	}
+	document.getElementById('print-log').addEventListener('click', () => {
+		let log = new Log();
+		console.log(log);
+		log.print();
+	});
+
+	/*
+		工厂模式：可以根据参数产生一系列对象，开闭原则，容易扩展，封闭细节。
+	*/
+
+	function Get (url) {
+		this.url = url;
+	}
+
+	function Ajax (url = '', type = 'get') {
+		if (type === 'get') {
+			return new Get(url);
+		} else if (type === 'post') {
+			return new Post(url);
+		} else if (type === 'jsonp') {
+			return new Jsonp(url);
+		}
+	}
+
+	// 每次调用Ajax都会产生一个xhr对象
+	let xhr = Ajax('www.example.com/getInfo', 'get');
+
+	/*
+		外观（门面）模式：封闭多步子集合，提供高层接口方便调用，开闭原则
+	*/
+
+	function Search () {
+	}
+
+	Search.prototype.search = function (content) {
+		this.deleteOld();
+		this.searchNew(content);
+		this.updatePage();
+	}
+
+	Search.prototype.deleteOld = () => console.log('deleteOld');
+	Search.prototype.searchNew = (content) => console.log(content);
+	Search.prototype.updatePage = () => console.log('updatePage');
+
+	let searcher = new Search();
+	searcher.search('666');
+
+	/*
+		适配器模式：将一个接口转换成另一个接口，供不同的对象调用，从不破坏一个类的情况下可以方便另一个类使用。
+	*/
+	// 简单的适配器对象
+	function Adaptor (clazz, method = 'show') {
+		return clazz.prototype[method];
+	}
+
+	function Page () {
+		let screen = window.innerWidth < 300 ? 'small' : 'large';
+		if (screen === 'small') {
+			this.show = Adaptor(SmallPage, 'show'); 
+			// 提高适配方法的层级，使得page对象直接调用实例中的方法，不再调用原型中的方法。
+		}
+	}
+	Page.prototype.show = function () {
+		console.log('now is large screen');
+	}
+
+	function SmallPage () {
+	}
+	SmallPage.prototype.show = function () {
+		console.log('now is smalle screen');
+	}
+
+	let page = new Page();
+	page.show();
+
+	/*
+		策略模式：把操作封装成一个个策略，根据不同的类型映射到不同的策略，只要用于改善多层判断的
+		如注册表单验证，可以使用验证策略的自由组合代替多层if判断，如下
+	*/
+	// 策略对象
+	let validateConditions = {
+		notNull (val, bool) {
+			return (val !== '') == bool;
+		},
+		maxLen (val, maxLen) {
+			return val.length <= maxLen;
+		}
+	};
+
+	function Regist (elem = '', opts = {}) {
+		this.elem = elem;
+		this.opts = opts;
+	}
+	// 根据创建对象时传入的策略进行验证
+	Regist.prototype.validate = function () {
+		for (let key in this.opts) {
+			if (!validateConditions[key](this.elem.value, this.opts[key])) {
+				return false;
+			}
+		}
+		return true;
+	};
+
+	document.getElementById('regist').addEventListener('click', () => {
+		let input = document.getElementById('info');
+		let regist = new Regist(input, { // 可以使用不同的策略组合
+			notNull: true,
+			maxLen: 10
+		});
+		let result = regist.validate();
+		console.log(result);
+	});
+
+	/*
+		观察者模式（发布订阅模式）
+		
+		观察者对象，即订阅消息的对象。
+		{
+			otherAttr: '',
+			listeners: {
+				event1: [fn1, fn2, fn3...],
+				event2: [fn1, fn2...]
+			}
+		}
+	*/
+	// 被订阅对象，发布者
+	function Foo () {}
+	// obj 观察者，订阅者  events 事件处理函数数组 fn 事件对应的处理函数
+	Foo.prototype.bind = function (obj, events, fn) {
+		obj.listeners = obj.listeners || {};
+		obj.listeners[events] = obj.listeners[events] || [];
+		obj.listeners[events].push(fn);
+		console.log(obj.listeners)
+	};
+
+	Foo.prototype.fire = function (obj, events) {
+		for (let i = 0; i < obj.listeners[events].length; i++) {
+			obj.listeners[events][i]();
+		}
+	};
+
+	let foo = new Foo();
+	let div1 = document.getElementById('div1');
+	foo.bind(div1, 'show', () => {
+		console.log('show--------1');
+	});
+	foo.bind(div1, 'show', () => {
+		console.log('show---------2');
+	});
+	foo.bind(div1, 'hide', () => {
+		console.log('hide----------1');
+	});
+
+	foo.fire(div1, 'show');
+
+	/*
+		装饰者模式：动态的给一个对象添加一些额外的职责，对结果进行进一步的装饰。
+	*/
+	function Foo () {
+		this.name = 'hello';
+	}
+	function Bar (name) {
+		this.name = name + ' javascript';
+	}
+	function Baz (name) {
+		this.name = name + '!!!';
+	}
+	let obj1 = new Foo();
+	let obj2 = new Bar(obj1.name);
+	let obj3 = new Baz(obj2.name);
+	console.log(obj3.name);
+
+	function Numbers (number) {
+		this.number = number;
+	}
+
+	Numbers.prototype.get = function () {
+		return this.number;
+	};
+
+	function Milins (number) {
+		this.number = this.set(number);
+	}
+
+	Milins.prototype.set = function (number) {
+		let reg = /(?=(?!\b)(\d{3})+$)/g
+		return number.toString().replace(reg, ',');
+	};
+
+	Milins.prototype.get = function () {
+		return this.number;
+	};
+
+	function Currency (number, curr) {
+		this.number = this.set(number, curr);
+	}
+
+	Currency.prototype.set = function (number, curr) {
+		return curr + number;
+	};
+
+	Currency.prototype.get = function () {
+		return this.number;
+	};
+
+	let n1 = new Numbers(12345678);
+	let m1 = new Milins(n1.get());
+	let c1 = new Currency(m1.get(), '¥');
+	console.log(c1.get());
+
+	/*
+		备忘录模式（memento）: record state
+	*/
+
+	// 备忘录对象
+	/*function Memento () {
+		this.states = [];
+	}
+
+	Memento.prototype.setMemento = function (state) {
+		this.states.push(state);
+	};
+
+	Memento.prototype.getMemento = function () {
+		return this.states.pop();
+	};
+
+	// 创建者对象
+	function Origintor () {
+		this.state = '';
+		this.memento = new Memento(); // 备忘录对象
+	}
+
+	Origintor.prototype.setState = function (state) {
+		this.state = state;
+	};
+
+	Origintor.prototype.getState = function () {
+		return this.state;
+	};
+
+	// 创建备忘录
+	Origintor.prototype.createMemento = function () {
+		this.memento.setMemento(this.state);
+	};
+
+	// 恢复状态
+	Origintor.prototype.restoreMemento = function () {
+		this.state = this.memento.getMemento();
+	};
+
+	// 使用
+	let o1 = new Origintor();
+	o1.setState('state 1');
+	console.log(`初始时的状态：${o1.getState()}`);
+	o1.createMemento();
+	o1.setState('state 2');
+	console.log(`改变后的状态：${o1.getState()}`);
+	o1.createMemento();
+	o1.setState('state 3');
+	console.log(`改变后的状态：${o1.getState()}`);
+	o1.restoreMemento();
+	console.log(`恢复后的状态：${o1.getState()}`);
+	o1.restoreMemento();
+	console.log(`恢复后的状态：${o1.getState()}`);*/
+
+	class Memento {
+		constructor () {
+			this.states = [];
+		}
+
+		setMemento (state) {
+			this.states.push(state);
+		}
+
+		getMemento () {
+			return this.states.pop();
+		}
+	}
+
+	class Origintor {
+		constructor () {
+			this.state = '';
+			this.memento = new Memento();
+		}
+
+		setState (state) {
+			this.state = state;
+		}
+
+		getState () {
+			return this.state;
+		}
+
+		createMemento () {
+			this.memento.setMemento(this.state);
+		}
+
+		restoreMemento () {
+			this.state = this.memento.getMemento();
+		}
+	}
+
+	let ta = document.getElementById('memento');
+	let tip = document.getElementById('store');
+	let origintor = new Origintor();
+	ta.onkeydown = function (ev) {
+		// alt + shift ---- save
+		if (ev.keyCode === 16) {
+			tip.style.display = 'none';
+			origintor.setState(this.value);
+			origintor.createMemento();
+		}
+		// alt + ctrl ---- restore
+		if (ev.keyCode === 17) {
+			origintor.restoreMemento();
+			origintor.getState() ? this.value = origintor.getState() : this.value = '';
+		}
+	};
+	ta.oninput = function (ev) {
+		tip.style.display = '';
+	};
+
+	/*
+		组合模式：部分--整体，适合有层次结构的场景，如树形结构。
+	*/
+
+	// 组合对象--包含子节点的对象
+	/*function Root (name) {
+		this.name = name;
+		this.children = [];
+	}
+
+	Root.prototype.add = function (node) {
+		this.children.push(node);
+	};
+
+	function Leaf (name) {
+		this.name = name;
+	}*/
+
+	class Root {
+		constructor (name) {
+			this.name = name;
+			this.children = [];
+		}
+
+		add (node) {
+			this.children.push(node);
+		}
+	}
+
+	class Leaf {
+		constructor (name) {
+			this.name = name;
+		}
+	}
+
+	// 1-1 表示第一层第一个
+	let root = new Root('组合对象1-1');
+	let leaf1 = new Leaf('叶子对象2-1');
+	root.add(leaf1);
+	let root1 = new Root('组合对象2-2');
+	root.add(root1);
+	let root2 = new Root('组合对象3-1');
+	root1.add(root2);
+	let root3 = new Root('组合对象3-2');
+	root1.add(root3);
+	let leaf2 = new Leaf('叶子对象4-1');
+	root2.add(leaf2);
+	let leaf3 = new Leaf('叶子对象4-2');
+	root2.add(leaf3);
+	leaf4 = new Leaf('叶子对象4-3');
+	root3.add(leaf4);
+	leaf5 = new Leaf('叶子对象4-4');
+	root3.add(leaf5);
+
+	let list = document.getElementById('list');
+	show(root, list);
+
+	function show (node, parent) {
+		let li = document.createElement('li');
+		li.innerHTML = node.name;
+		li.style.cursor = 'default';
+		parent.appendChild(li);
+		if (!node.children) {
+			return;
+		}
+		if (node.children) {
+			for (let i = 0; i < node.children.length; i++) {
+				childUl = document.createElement('ul');
+				li.appendChild(childUl);
+				li.style.cursor = 'pointer';
+				show(node.children[i], childUl);
+			}
+		}
+	}
+
+	list.onclick = function (ev) {
+		console.log(ev);
+		if (ev.target.nodeName.toLowerCase() === 'li') {
+			let children = ev.target.children;
+			for (let i = 0; i < children.length; i++) {
+				if (children[i].nodeName.toLowerCase() === 'ul' && !children[i].flag) {
+					children[i].style.display = 'none';
+					children[i].flag = true;
+				} else if (children[i].nodeName.toLowerCase() === 'ul') {
+					children[i].style.display = 'block';
+					children[i].flag = false;
+				}
+			}
+		}
+	};
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

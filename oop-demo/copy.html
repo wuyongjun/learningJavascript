@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>copy</title>
+</head>
+<body>
+<script type="text/javascript">
+	let obj1 = {
+		name: 'qwe',
+		age: {
+			number: 20
+		}
+	};
+
+	let copy = obj => {
+		let result = {};
+		for (let attr in obj) {
+			if (typeof obj[attr] === 'object') { // 深拷贝
+				result[attr] = copy(obj[attr]);
+			} else {
+				result[attr] = obj[attr];
+			}
+		}
+		return result;
+	};
+
+	let obj2 = copy(obj1);
+	obj2.age.number = 30;
+
+	console.log(obj1);
+	console.log(obj2);
+
+	let arr = [1, 2, 3];
+	
+	Array.prototype.push = function (...args) {
+		args.forEach((item, index) => {
+			this[this.length] = item;
+		});
+		return this.length;
+	}
+
+	arr.push(4, 5, 6);
+	// arr[arr.length] = 4;
+	console.log(arr);
+
+	let str = new String('   hello    ');
+
+	String.prototype.trim = function () {
+		console.log(this)
+		return this.replace(/^\s+|\s+$/g, '');
+	}
+
+	console.log(`(${str.trim()})`);
+
+	function Foo () {};
+	function Bar () {};
+	Foo.prototype = Bar.prototype;
+
+	let foo = new Foo();
+
+	console.log(foo instanceof Foo);
+	console.log(foo.__proto__ == Foo.prototype);
+	console.log(foo.__proto__ == Bar.prototype);
+
+	// 下面是几种js面向对象继承的写法
+
+	// 1、拷贝继承
+	/*function Person () {
+		this.name = 'person';
+	}
+	Person.prototype.showName = function () {
+		console.log(this.name);
+	};
+
+	function Worker () {
+		Person.call(this);
+		this.age = 18;
+	}
+	// extends super
+	extend(Worker, Person);
+	Worker.prototype.showAge = function () {
+		console.log(this.age);
+	};
+
+	function extend (subs, sups) {
+		for (let attr in sups.prototype) {
+			subs.prototype[attr] = sups.prototype[attr];
+		}
+	}*/
+
+	// 2、类式继承
+	function Person () {
+		this.name = 'person';
+	}
+	Person.prototype.showName = function () {
+		console.log(this.name);
+	};
+
+	function Worker () {
+		Person.call(this);
+		this.age = 18
+	}
+	extend(Worker, Person);
+	Worker.prototype.showAge = function () {
+		console.log(this.age);
+	};
+
+	function extend (subs, sups) {
+		let F = function () {};
+		F.prototype = sups.prototype;
+		subs.prototype = new F();
+		subs.prototype.constructor = subs;
+	}
+
+	console.log(new Person());
+	console.log(new Worker());
+
+</script>
+</body>
+</html>

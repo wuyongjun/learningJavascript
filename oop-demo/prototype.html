@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>prototype</title>
+</head>
+<body>
+<script type="text/javascript">
+	// __proto__ 基本实现
+	Object.defineProperty(Object.prototype, '__proto__', {
+		get: function () {
+			return Object.getPrototypeOf(this);
+		},
+		set: function (o) {
+			Object.setPrototypeOf(this, o);
+			return o;
+		}
+	});
+
+	// 会创建一个没有原型链的空对象，非常适合当作“字典”用来存储数据。
+	let hashTable = Object.create(null);
+	console.log(hashTable);
+
+	// Object.create可以没有副作用的创建两个对象之间的关联，下面是es5之前的polyfill
+	if (!Object.create) {
+		Object.create = function (obj) {
+			function F () {};
+			F.prototype = obj;
+			return new F();
+		};
+	}
+</script>
+</body>
+</html>

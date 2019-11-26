@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>drag-options</title>
+	<style type="text/css">
+		#div1 {
+			width: 100px;
+			height: 100px;
+			background: red;
+			position: absolute;
+			z-index: 10;
+		}
+		#div2 {
+			width: 100px;
+			height: 100px;
+			background: orange;
+			position: absolute;
+			z-index: 9;
+		}
+		#div3 {
+			width: 100px;
+			height: 100px;
+			background: blue;
+			position: absolute;
+			z-index: 8;
+		}
+		#div4 {
+			width: 100px;
+			height: 100px;
+			background: green;
+			position: absolute;
+			z-index: 7;
+		}
+	</style>
+</head>
+<body>
+	<div id="div1"></div>
+	<div id="div2"></div>
+	<div id="div3"></div>
+	<div id="div4"></div>
+</body>
+<script type="text/javascript">
+
+	function Drag (opts) {
+		this.disX = 0;
+		this.disY = 0;
+		this.range = opts.range || false;
+		this.axis = opts.axis || '';
+		this.elem = document.getElementById(opts.id);
+	}
+
+	Drag.prototype.init = function () {
+		let _this = this;
+		this.elem.onmousedown = function (evt) {
+			_this.fnDown(evt);
+			document.onmousemove = function (evt) {
+				_this.fnMove(evt);
+			};
+			document.onmouseup = function (evt) {
+				_this.fnUp()
+			};
+		};
+	};
+
+	Drag.prototype.fnDown = function (evt) {
+		this.disX = evt.pageX - this.elem.offsetLeft;
+		this.disY = evt.pageY - this.elem.offsetTop;
+	};
+
+	Drag.prototype.fnMove = function (evt) {
+		let left = evt.pageX - this.disX;
+		let top = evt.pageY - this.disY;
+		if (this.range) {
+			if (left < 0) {
+				left = 0;
+			} else if (left > window.innerWidth - this.elem.offsetWidth) {
+				left = window.innerWidth - this.elem.offsetWidth;
+			}
+			if (top < 0) {
+				top = 0;
+			} else if (top > window.innerHeight - this.elem.offsetHeight) {
+				top = window.innerHeight - this.elem.offsetHeight;
+			}
+		}
+		if (this.axis === 'x') {
+			this.elem.style.left = left + 'px';
+		} else if (this.axis === 'y') {
+			this.elem.style.top = top + 'px';
+		} else {
+			this.elem.style.left = left + 'px';
+			this.elem.style.top = top + 'px';
+		}
+	};
+
+	Drag.prototype.fnUp = function () {
+		document.onmousemove = null;
+		document.onmouseup = null;
+	};
+
+	let d1 = new Drag({
+		id: 'div1'
+	});
+	d1.init();
+
+	let d2 = new Drag({
+		id: 'div2',
+		range: true
+	});
+	d2.init();
+
+	let d3 = new Drag({
+		id: 'div3',
+		range: true,
+		axis: 'x'
+	});
+	d3.init();
+
+	let d4 = new Drag({
+		id: 'div4',
+		range: true,
+		axis: 'y'
+	});
+	d4.init();
+</script>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

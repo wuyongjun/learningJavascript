@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>defineProperties</title>
+</head>
+<body>
+<script type="text/javascript">
+	let obj = {
+		name: 'hello'
+	};
+
+	Object.defineProperties(obj, {
+		age: {
+			value: 18,
+			writable: true,
+			configurable: true,
+			enumerable: true
+		},
+		job: {
+			get: function () {
+				return job;
+			},
+			set: function (val) {
+				job = val;
+			}
+		}
+	});
+	obj.job = 'doctor';
+	console.log(obj);
+	console.log(Object.getOwnPropertyDescriptor(obj, 'job'));
+	console.log(Object.getOwnPropertyDescriptors(obj));
+
+	console.log(Object.getOwnPropertyDescriptor(obj, 'name'));
+	Object.seal(obj); // 禁止对象可配置 如不能给该对象添加或者删除属性
+	console.log(Object.getOwnPropertyDescriptor(obj, 'name'));
+
+	// 相关方法
+	// Object.seal(obj);
+	// Object.isSealed(obj);
+	// Object.freeze(obj);
+	// Object.isFrozen(obj);
+	// Object.preventExtensions(obj);
+	// Object.isExtensible(obj);
+	// Object.keys(obj);
+	// Object.values(obj);
+	// Object.entries(obj);
+	// Object.getOwnPropertyNames(obj);
+
+	let targetObj = {};
+	Object.assign(targetObj, obj);
+	console.log(targetObj);
+
+	// let person = {
+	// 	name: 'xiaoming'
+	// };
+	// let student = Object.create(person); // 创建一个以person为原型的对象
+	// console.log(student);
+
+	function Person (name) {
+		this.name = name;
+	}
+
+	Person.prototype.say = function () {
+		console.log(`hi, my name is ${this.name}`);
+	};
+
+	function Student (name, id) {
+		Person.call(this, name);
+		this.id = id;
+	}
+
+	Student.prototype = Object.create(Person.prototype);
+
+	Student.prototype.study = function () {
+		console.log('i like studing.');
+	};
+
+	let person = new Person('lishi');
+	let student = new Student('madong', '001');
+	console.log(Person.prototype.isPrototypeOf(student));
+	console.log(Object.getPrototypeOf(student));
+	student.say();
+
+	let number = 123;
+	let arr = [1, 2, 4];
+	// 可以代替typeof判断类型，应用较广
+	console.log(Object.prototype.toString.call(number)); //[object Number]
+	console.log(Object.prototype.toString.call(arr)); //[object Array]
+
+	Object.prototype.valueOf = function () {
+		return 4
+	};
+	let o = {
+		name: 'hello'
+	};
+	console.log(o);
+	console.log(1 + o);
+
+</script>
+</body>
+</html>
+
+
+
+
+
+
+

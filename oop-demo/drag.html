@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>drag</title>
+	<style type="text/css">
+		.div1 {
+			width: 150px;
+			height: 150px;
+			background: lightblue;
+			position: absolute;
+		}
+		.div2 {
+			width: 150px;
+			height: 150px;
+			background: yellow;
+			position: absolute;
+		}
+	</style>
+</head>
+<body>
+<div id="div1" class="div1"></div>
+<div id="div2" class="div2"></div>
+<script type="text/javascript">
+
+	function Drag (id) {
+		this.disX = 0;
+		this.dixY = 0;
+		this.elem = document.getElementById(id);
+	}
+
+	Drag.prototype.init = function () {
+		let _this = this;
+		this.elem.onmousedown = function (event) {
+			_this.fnDown(event);
+			document.onmousemove = function (event) {
+				_this.fnMove(event);
+			};
+			document.onmouseup = function () {
+				_this.fnUp();
+			};
+			return false; // prevent default action
+		};
+	};
+
+	Drag.prototype.fnDown = function (event) {
+		this.disX = event.pageX - this.elem.offsetLeft;
+		this.disY = event.pageY - this.elem.offsetTop;
+	};
+
+	Drag.prototype.fnMove = function (event) {
+		this.elem.style.left = event.pageX - this.disX + 'px';
+		this.elem.style.top = event.pageY - this.disY + 'px';
+	};
+
+	Drag.prototype.fnUp = function () {
+		document.onmousemove = null;
+		document.onmouseup = null;
+	};
+
+	let drag = new Drag('div1');
+	drag.init();
+
+	function DragChild (id) {
+		Drag.call(this, id);
+	}
+	extend(DragChild, Drag);
+	// 多态---》重写方法
+	DragChild.prototype.fnMove = function (event) {
+		let left = event.pageX - this.disX;
+		let top = event.pageY - this.disY;
+		if (left < 0) {
+			left = 0;
+		} else if (left > window.innerWidth - this.elem.offsetWidth) {
+			left = window.innerWidth - this.elem.offsetWidth;
+		}
+		if (top < 0) {
+			top = 0;
+		} else if (top > window.innerHeight - this.elem.offsetHeight) {
+			top = window.innerHeight - this.elem.offsetHeight;
+		}
+		this.elem.style.left = left + 'px';
+		this.elem.style.top = top + 'px';
+	};
+	function extend (sub, sup) {
+		for (let attr in sup.prototype) {
+			sub.prototype[attr] = sup.prototype[attr];
+		}
+	}
+
+	let dragChild = new DragChild('div2');
+	console.log(dragChild);
+	dragChild.init();
+
+</script>
+</body>
+</html>

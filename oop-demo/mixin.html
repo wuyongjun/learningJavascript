@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>mixin</title>
+</head>
+<body>
+<script type="text/javascript">
+	function  mixin (sourceObj, targetObj) {
+		for (let key in sourceObj) {
+			if (!(key in targetObj)) {
+				targetObj[key] = sourceObj[key];
+			}
+		}
+		return targetObj;
+	}
+
+	let vehicle = {
+		engines: 1,
+
+		ignition () {
+			console.log('turn on my engines');
+		},
+
+		drive () {
+			this.ignition();
+			console.log('vehicle drives');
+		}
+	}
+
+	let car = mixin(vehicle, {
+		wheels: 4,
+
+		drive () {
+			vehicle.drive.call(this);
+			console.log('car drives');
+		}
+	});
+
+	console.log(car);
+</script>
+</body>
+</html>
